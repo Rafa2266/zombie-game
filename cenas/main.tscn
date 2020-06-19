@@ -1,0 +1,134 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://export/branco0.png" type="Texture" id=1]
+[ext_resource path="res://cenas/metralhadora.tscn" type="PackedScene" id=2]
+[ext_resource path="res://script/tempo de jogo.gd" type="Script" id=3]
+[ext_resource path="res://script/vida do jogador.gd" type="Script" id=4]
+[ext_resource path="res://cenas/muro.tscn" type="PackedScene" id=5]
+[ext_resource path="res://cenas/fundo.tscn" type="PackedScene" id=6]
+[ext_resource path="res://cenas/zombie spawner.tscn" type="PackedScene" id=7]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends CanvasLayer
+
+
+
+func _ready():
+   set_process_input(true)
+
+
+func _input(event):
+	if event.is_action_pressed(\"pause\") and !event.is_echo():
+		get_tree().set_pause(!get_tree().is_paused())
+	
+	if get_tree().is_paused():
+		get_node(\"paused\").show()
+		get_node(\"preto_branco\").show()
+	else:
+	    get_node(\"paused\").hide()
+	    get_node(\"preto_branco\").hide()
+"
+
+[sub_resource type="Shader" id=2]
+code = "shader_type canvas_item;
+
+void fragment(){
+vec4 pixel_tela = vec4(vec3(SCREEN_UV,1) , 1);
+float media= (pixel_tela.r+pixel_tela.g + pixel_tela.b)/3.0;
+COLOR = vec4(media,media,media,0.7);
+}"
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = SubResource( 2 )
+
+[sub_resource type="GDScript" id=4]
+script/source = "extends Camera2D
+
+var shake=0
+func _ready():
+	set_process(true)
+	pass
+ 
+func _process(delta):
+ if shake>0:
+   set_position(Vector2(cos(rad2deg(shake)),sin(rad2deg(shake)))*1.5)
+   shake-=delta
+ else:
+   set_position(Vector2(0,0))
+ pass
+
+func shake():
+    shake=0.5
+    pass "
+
+[node name="main" type="Node"]
+
+[node name="pause" type="CanvasLayer" parent="."]
+pause_mode = 2
+layer = 3
+script = SubResource( 1 )
+
+[node name="preto_branco" type="TextureRect" parent="pause"]
+visible = false
+material = SubResource( 3 )
+margin_left = -2.0
+margin_top = -2.0
+margin_right = 801.0
+margin_bottom = 716.0
+texture = ExtResource( 1 )
+expand = true
+
+[node name="paused" type="Label" parent="pause"]
+visible = false
+margin_left = 240.0
+margin_top = 220.0
+margin_right = 319.0
+margin_bottom = 253.0
+rect_scale = Vector2( 4, 4 )
+custom_colors/font_color = Color( 1, 0, 0, 1 )
+text = "Paused"
+
+[node name="camera" type="Camera2D" parent="."]
+anchor_mode = 0
+current = true
+drag_margin_h_enabled = true
+drag_margin_v_enabled = true
+script = SubResource( 4 )
+
+[node name="metra" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="metralhadora" parent="metra" instance=ExtResource( 2 )]
+position = Vector2( 396.85, 579.827 )
+rotation = -0.00570714
+scale = Vector2( 2.22106, 1.5366 )
+
+[node name="tempo de jogo" type="Label" parent="metra"]
+margin_left = 690.0
+margin_top = 20.0
+margin_right = 706.0
+margin_bottom = 45.0
+rect_scale = Vector2( 2.5, 2.5 )
+custom_colors/font_color = Color( 0.986328, 0.971097, 0.0115585, 1 )
+text = "0"
+valign = 2
+script = ExtResource( 3 )
+
+[node name="vida do jogador" type="Label" parent="metra"]
+margin_left = 620.0
+margin_top = 630.0
+margin_right = 660.0
+margin_bottom = 655.0
+rect_scale = Vector2( 2, 2 )
+custom_colors/font_color = Color( 0.00585938, 0.00569916, 0.00569916, 1 )
+text = "10"
+script = ExtResource( 4 )
+
+[node name="muro" parent="." instance=ExtResource( 5 )]
+position = Vector2( -19.423, 14.7618 )
+rotation = -1.39698e-09
+scale = Vector2( 1.03446, 1 )
+
+[node name="fundo" parent="." instance=ExtResource( 6 )]
+
+[node name="zombie spawner" parent="." instance=ExtResource( 7 )]
